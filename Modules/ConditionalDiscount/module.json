@@ -1,0 +1,13 @@
+{
+    "name": "ConditionalDiscount",
+    "alias": "conditionaldiscount",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\ConditionalDiscount\\Providers\\ConditionalDiscountServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}
