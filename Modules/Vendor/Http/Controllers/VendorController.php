@@ -6,10 +6,14 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Base\Http\Controllers\BaseController;
+use Modules\Vendor\Http\Requests\VendorFormRequest;
 use Modules\Vendor\Entities\Vendors;
+use App\Traits\UploadAble;
+use Illuminate\Support\Facades\Hash;
 
 class VendorController extends BaseController
 {
+    use UploadAble;
     public function __construct(Vendors $model)
     {
         $this->model = $model;
@@ -27,7 +31,7 @@ class VendorController extends BaseController
 
     public function get_datatable_data(Request $request)
     {
-        if(permission('customer-access')){
+        if(permission('vendor-access')){
             if($request->ajax()){
                 if (!empty($request->name)) {
                     $this->model->setName($request->name);
@@ -42,20 +46,20 @@ class VendorController extends BaseController
                     $no++;
                     $action = '';
 
-                    if(permission('customer-view')){
+                    if(permission('vendor-view')){
                         $action .= ' <a class="dropdown-item view_data" data-id="' . $value->id . '"><i class="fas fa-eye text-primary"></i> View</a>';
                     }
-                    if(permission('customer-edit')){
+                    if(permission('vendor-edit')){
                         $action .= ' <a class="dropdown-item edit_data" data-id="' . $value->id . '"><i class="fas fa-edit text-primary"></i> Edit</a>';
                     }
 
-                    if(permission('customer-delete')){
+                    if(permission('vendor-delete')){
                         $action .= ' <a class="dropdown-item delete_data"  data-id="' . $value->id . '" data-name="' . $value->name . '"><i class="fas fa-trash text-danger"></i> Delete</a>';
                     }
 
                     $row = [];
 
-                    if(permission('customer-bulk-delete')){
+                    if(permission('vendor-bulk-delete')){
                         $row[] = table_checkbox($value->id);
                     }
                     $row[] = $value->id;
@@ -75,11 +79,13 @@ class VendorController extends BaseController
         }
     }
 
-    public function store_or_update_data(CustomersFormRequest $request)
+    public function store_or_update_data(VendorFormRequest $request)
     {
         if($request->ajax()){
-            if(permission('customer-edit')){
-                $collection = collect($request->validated());
+            if(permission('vendor-edit')){
+                $collection = collect($request->validated())->except(['password']);
+                $password=Hash::make($request->password);;
+                $collection = $collection->merge(compact('password'));
                 $collection = $this->track_data($request->update_id,$collection);
                 $result = $this->model->updateOrCreate(['id'=>$request->update_id],$collection->all());
                 $output = $this->store_message($result,$request->update_id);
@@ -95,7 +101,7 @@ class VendorController extends BaseController
     public function edit(Request $request)
     {
         if($request->ajax()){
-            if(permission('customer-edit')){
+            if(permission('vendor-edit')){
                 $data = $this->model->findOrFail($request->id);
                 $output = $this->data_message($data);
             }else{
@@ -109,7 +115,7 @@ class VendorController extends BaseController
     public function view(Request $request)
     {
         if($request->ajax()){
-            if(permission('customer-edit')){
+            if(permission('vendor-edit')){
                 $data = $this->model->findOrFail($request->id);
                 $output = $this->data_message($data);
             }else{
@@ -124,7 +130,7 @@ class VendorController extends BaseController
     public function delete(Request $request)
     {
         if($request->ajax()){
-            if(permission('customer-delete')){
+            if(permission('vendor-delete')){
                 $result = $this->model->find($request->id)->delete();
                 $output = $this->delete_message($result);
             }else{
@@ -139,7 +145,7 @@ class VendorController extends BaseController
     public function bulk_delete(Request $request)
     {
         if($request->ajax()){
-            if(permission('customer-bulk-delete')){
+            if(permission('vendor-bulk-delete')){
                 $result = $this->model->destroy($request->ids);
                 $output = $this->bulk_delete_message($result);
             }else{

@@ -97,11 +97,12 @@
     <!-- /grid -->
 
 </div>
-@include('customers::modal')
-@include('customers::view_modal')
+@include('vendor::modal')
+{{-- @include('vendor::view_modal') --}}
 @endsection
 
 @push('script')
+ <script src="js/spartan-multi-image-picker-min.js"></script>
 <script>
 var table;
 $(document).ready(function(){
@@ -125,7 +126,7 @@ $(document).ready(function(){
             zeroRecords: '<strong class="text-danger">No Data Found</strong>'
         },
         "ajax": {
-            "url": "{{route('customers.datatable.data')}}",
+            "url": "{{route('vendor.datatable.data')}}",
             "type": "POST",
             "data": function (data) {
                 data.name = $("#form-filter #name").val();
@@ -133,7 +134,7 @@ $(document).ready(function(){
             }
         },
         "columnDefs": [{
-                @if (permission('customer-bulk-delete'))
+                @if (permission('vendor-bulk-delete'))
                 "targets": [0,4],
                 @else
                 "targets": [3],
@@ -142,7 +143,7 @@ $(document).ready(function(){
                 "className": "text-center"
             },
             {
-                @if (permission('customer-bulk-delete'))
+                @if (permission('vendor-bulk-delete'))
                 "targets": [1,3],
                 @else
                 "targets": [0,2],
@@ -155,7 +156,7 @@ $(document).ready(function(){
             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'<'float-right'p>>>",
 
         "buttons": [
-            @if (permission('ctype-report'))
+            @if (permission('vendor-report'))
             {
                 'extend':'colvis','className':'btn btn-secondary btn-sm text-white','text':'Column'
             },
@@ -212,7 +213,7 @@ $(document).ready(function(){
                 },
             },
             @endif
-            @if (permission('customer-bulk-delete'))
+            @if (permission('vendor-bulk-delete'))
             {
                 'className':'btn btn-danger btn-sm delete_btn d-none text-white',
                 'text':'Delete',
@@ -236,7 +237,7 @@ $(document).ready(function(){
     $(document).on('click', '#save-btn', function () {
         let form = document.getElementById('store_or_update_form');
         let formData = new FormData(form);
-        let url = "{{route('customers.store.or.update')}}";
+        let url = "{{route('vendor.store.or.update')}}";
         let id = $('#update_id').val();
         let method;
         if (id) {
@@ -252,7 +253,7 @@ $(document).ready(function(){
 
         if (id) {
             $.ajax({
-                url: "{{route('customers.view')}}",
+                url: "{{route('vendor.view')}}",
                 type: "POST",
                 data: { id: id,_token: _token},
                 dataType: "JSON",
@@ -263,7 +264,7 @@ $(document).ready(function(){
                     $('.address_is').html(data.address);
                     $('.date_of_birth_is').html(data.date_of_birth);
                     $('.gender_is').html(data.gender);
-                    $('.phone_number_is').html(data.phone_number);
+                    $('.phone_number_is').html(data.phone);
 
                     $('#view_data_modal').modal({
                         keyboard: false,
@@ -285,14 +286,33 @@ $(document).ready(function(){
         $('#store_or_update_form').find('.error').remove();
         if (id) {
             $.ajax({
-                url: "{{route('customers.edit')}}",
+                url: "{{route('vendor.edit')}}",
                 type: "POST",
                 data: { id: id,_token: _token},
                 dataType: "JSON",
                 success: function (data) {
+                $('#store_or_update_form #old_image').val(data.image);
+                    if(data.image){
+                        var image = "{{ asset('storage/'.EMPLOYEE_IMAGE_PATH)}}/"+data.image;
+                        $('#store_or_update_form #image img.spartan_image_placeholder').css('display','none');
+                        $('#store_or_update_form #image .spartan_remove_row').css('display','block');
+                        $('#store_or_update_form #image .img_').css('display','block');
+                        $('#store_or_update_form #image .img_').attr('src',image);
+                    }else{
+                        $('#store_or_update_form #image img.spartan_image_placeholder').css('display','block');
+                        $('#store_or_update_form #image .spartan_remove_row').css('display','none');
+                        $('#store_or_update_form #image .img_').css('display','none');
+                        $('#store_or_update_form #image .img_').attr('src','');
+                    }
                     $('#store_or_update_form #update_id').val(data.id);
                     $('#store_or_update_form #name').val(data.name);
+                    $('#store_or_update_form #phone_number').val(data.phone_number);
+                    $('#store_or_update_form #date_of_birth').val(data.date_of_birth);
+                    $('#store_or_update_form #gender').val(data.gender);
+                    $('#store_or_update_form #password').val(data.password);
                     $('#store_or_update_form #address').val(data.address);
+                    $('#store_or_update_form #email').val(data.email);
+                     $('#store_or_update_form .selectpicker').selectpicker('refresh');
 
                     $('#store_or_update_modal').modal({
                         keyboard: false,
@@ -314,9 +334,32 @@ $(document).ready(function(){
         let id    = $(this).data('id');
         let name  = $(this).data('name');
         let row   = table.row($(this).parent('tr'));
-        let url   = "{{ route('customers.delete') }}";
+        let url   = "{{ route('vendor.delete') }}";
         delete_data(id, url, table, row, name);
     });
+
+       $('#image').spartanMultiImagePicker({
+            fieldName: 'image',
+            maxCount: 1,
+            rowHeight: '150px',
+            groupClassName: 'col-md-12 com-sm-12 com-xs-12',
+            maxFileSize: '',
+            dropFileLabel: 'Drop Here',
+            allowExt: 'png|jpg|jpeg',
+            onExtensionErr: function(index, file){
+                Swal.fire({icon:'error',title:'Oops...',text: 'Only png,jpg,jpeg file format allowed!'});
+            }
+        });
+
+        function clearOldImage(){
+       
+         
+           
+
+         
+    
+      
+        }
 
     function multi_delete(){
         let ids = [];
