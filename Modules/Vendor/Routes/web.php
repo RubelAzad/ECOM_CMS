@@ -11,6 +11,17 @@
 |
 */
 
-Route::prefix('vendor')->group(function() {
-    Route::get('/', 'VendorController@index');
+
+
+Route::group(['middleware' => ['auth']], function () {
+    Route::get('vendor', 'VendorController@index')->name('vendor');
+    Route::group(['prefix' => 'vendor', 'as'=>'vendor.'], function () {
+        Route::post('datatable-data', 'VendorController@get_datatable_data')->name('datatable.data');
+        Route::post('store-or-update', 'VendorController@store_or_update_data')->name('store.or.update');
+        Route::post('edit', 'VendorController@edit')->name('edit');
+        Route::post('view', 'VendorController@view')->name('view');
+        Route::post('delete', 'VendorController@delete')->name('delete');
+        Route::post('bulk-delete', 'VendorController@bulk_delete')->name('bulk.delete');
+        Route::post('change-status', 'VendorController@change_status')->name('change.status');
+    });
 });
