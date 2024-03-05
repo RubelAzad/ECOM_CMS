@@ -129,6 +129,17 @@ class InventoryController extends BaseController
                     $is_manage_stock = 2;
                     $collection = $collection->merge(compact('is_manage_stock'));
                 }
+                
+                if($request->is_vendor ==''){
+                    $is_vendor = 2;
+                    $collection = $collection->merge(compact('is_vendor'));
+                }
+
+                  if($request->is_pre_order ==''){
+                    $is_pre_order = 2;
+                    $collection = $collection->merge(compact('is_pre_order'));
+                }
+
 
                 $product_id = $request->product_id;
                 if($request->update_id==''){

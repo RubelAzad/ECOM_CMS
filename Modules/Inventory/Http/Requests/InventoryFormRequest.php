@@ -32,6 +32,10 @@ class InventoryFormRequest extends FormRequest
         $rules['reorder_quantity']  = ['nullable'];
         $rules['min_order_quantity']  = ['nullable'];
         $rules['min_order_quantity']  = ['nullable'];
+        $rules['is_vendor']  = ['nullable'];
+        $rules['is_pre_order']  = ['nullable'];
+        $rules['pre_start']  = ['nullable'];
+        $rules['pre_end']  = ['nullable'];
         $rules['is_special_deal']  = ['nullable'];
         $rules['is_manage_stock']  = ['nullable'];
 

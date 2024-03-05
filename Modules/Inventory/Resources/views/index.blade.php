@@ -5,7 +5,12 @@
 @endsection
 
 @push('stylesheet')
-
+<style>
+.pre_date{
+    display:none;
+    margin-bottom: 15px;
+}
+    </style>
 @endpush
 
 @section('content')
@@ -434,11 +439,22 @@
 
                             const is_special_deal = document.getElementById('is_special_deal');
                             const is_manage_stock = document.getElementById('is_manage_stock');
+                            const is_pre_order = document.getElementById('is_pre_order');
+                            const is_vendor = document.getElementById('is_vendor');
                             if(data.is_special_deal==1){
                                 is_special_deal.checked= !is_special_deal.checked;
                             }
                             if(data.is_manage_stock==1){
                                 is_manage_stock.checked= !is_manage_stock.checked;
+                            }
+                            if(data.is_pre_order==1){
+                                is_pre_order.checked= !is_pre_order.checked;
+                                $('.pre_date').show();
+                                $('#store_or_update_form #pre_start').val(data.pre_start);
+                                $('#store_or_update_form #pre_end').val(data.pre_end);
+                            }
+                            if(data.is_vendor==1){
+                                is_vendor.checked= !is_vendor.checked;
                             }
 
                             // $('#store_or_update_form #old_image').val(data[0].image);
@@ -509,6 +525,16 @@
                 $(this).parents('.col-md-6').remove();
             });
 
+            $('#is_pre_order').change(function () {
+                if ($(this).is(':checked')) {
+                    $('.pre_date').show();
+                } else {
+                    $('.pre_date').hide();
+                }
+             });
+
+
+
         });
 
         function showStoreFormModal(modal_title, btn_text)
@@ -578,6 +604,7 @@
             $('#content').html('');
             $('.row-0').html('');
             $('.main-0').val('');
+            $('.pre_date').hide();
             rowCounter=0;
         }
 

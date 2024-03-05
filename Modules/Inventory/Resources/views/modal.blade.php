@@ -44,7 +44,7 @@
 
                         <x-form.textbox type="number" labelName="Reorder Quantity" name="reorder_quantity" placeholder="Enter Reorder Quantity" col="col-md-3" />
 
-                        <div class="form-group col-md-6">
+                        {{-- <div class="form-group col-md-6">
                             <label for="image">Inventory Image</label>
                             <div class="col-md-12 px-0 text-center">
                                 <div id="image">
@@ -52,6 +52,20 @@
                                 </div>
                             </div>
                             <input type="hidden" name="old_image" id="old_image">
+                        </div> --}}
+                           <div class="form-group col-md-3">
+                            <label for="title">Vendor</label>
+                            <li class="branch">
+                                <input type="checkbox" id="is_vendor" value="1" name="is_vendor" class="form-check-input" >
+                                <label class="form-check-label" for="is_vendor">Yes</label>
+                            </li>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="title">Pre-Order</label>
+                            <li class="branch">
+                                <input type="checkbox" id="is_pre_order" value="1" name="is_pre_order" class="form-check-input" >
+                                <label class="form-check-label" for="is_pre_order">Yes</label>
+                            </li>
                         </div>
 
                         <div class="form-group col-md-3">
@@ -61,6 +75,9 @@
                                 <label class="form-check-label" for="is_special_deal">Yes</label>
                             </li>
                         </div>
+                  
+
+                        
 
                         <div class="form-group col-md-3">
                             <label for="title">Is Manage Stock</label>
@@ -70,12 +87,38 @@
                             </li>
                         </div>
 
+                        <div class="col-md-3 pre_date">
+                            <label for="pre_start" class="form-label">Pre-Order Start</label>
+                            <input type="date" id="pre_start" name="pre_start" class="form-control" placeholder="Pre-Order Start">
+                        </div>
+
+                        <div class="col-md-3 pre_date">
+                            <label for="pre_end" class="form-label">Pre-Order End</label>
+                            <input type="date" id="pre_end" name="pre_end" class="form-control" placeholder="Pre-Order End">
+                        </div>
+
+                     
+                            {{-- <x-form.textbox type="date"  labelName="Pre-Order Start" name="pre_start" col="col-md-3" class="pre_date" placeholder="Pre-Order Start"/>
+
+                            <x-form.textbox type="date"  labelName="Pre-Order End" name="pre_end" col="col-md-3" class="pre_date" placeholder="Pre-Order End"/> --}}
+                        
+                       
+
+                            
+                        <div class="form-group col-md-6 pre_date">
+                           
+                        </div>
+
+                        
+
                         {{--                <x-form.selectbox onchange="getVariantOptionList(this.value,'row-0')" labelName="Variants" name="variant_id[]" required="required" col="col-md-3" class="selectpicker main-0">--}}
                         {{--                    @foreach ($variants as $variant)--}}
                         {{--                       <option value="{{ $variant->id }}">{{ $variant->name }}</option>--}}
                         {{--                    @endforeach--}}
                         {{--                </x-form.selectbox>--}}
 
+                 
+                     
                         <div class="form-group col-md-3">
                             <label for="variant_id[]">Variants</label>
                             <select name="variant_id[]" id="variant_id[]" class="form-control selectpicker main-0" onchange="getVariantOptionList(this.value,'row-0')" data-live-search="true" >
@@ -92,6 +135,7 @@
                         <div class="form-group col-md-6 ">
                             <input class="mt-5" type="button" id="addnew" value="Add New" onclick="addRow()">
                         </div>
+                        
 
                     </div>
 
