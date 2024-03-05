@@ -16,7 +16,7 @@ class Inventory extends BaseModel
     protected $table = 'inventories';
 
     protected $fillable = ['product_id', 'title', 'sku', 'sale_price', 'offer_price',
-        'offer_start', 'offer_end', 'stock_quantity', 'reorder_quantity', 'is_special_deal',
+        'offer_start', 'offer_end', 'stock_quantity', 'reorder_quantity', 'is_special_deal', 'is_vendor','is_pre_order','pre_start','pre_end',
         'is_manage_stock', 'min_order_quantity', 'image', 'status', 'created_at', 'updated_at'];
 
     public function product()
