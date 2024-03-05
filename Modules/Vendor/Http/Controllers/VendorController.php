@@ -5,75 +5,149 @@ namespace Modules\Vendor\Http\Controllers;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Base\Http\Controllers\BaseController;
+use Modules\Vendor\Entities\Vendors;
 
-class VendorController extends Controller
+class VendorController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     * @return Renderable
-     */
+    public function __construct(Vendors $model)
+    {
+        $this->model = $model;
+    }
+
     public function index()
     {
-        return view('vendor::index');
+        if(permission('vendor-access')){
+            $this->setPageData('Vendors','Vendors','fas fa-th-list');
+            return view('vendor::index');
+        }else{
+            return $this->unauthorized_access_blocked();
+        }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     * @return Renderable
-     */
-    public function create()
+    public function get_datatable_data(Request $request)
     {
-        return view('vendor::create');
+        if(permission('customer-access')){
+            if($request->ajax()){
+                if (!empty($request->name)) {
+                    $this->model->setName($request->name);
+                }
+
+                $this->set_datatable_default_property($request);
+                $list = $this->model->getDatatableList();
+
+                $data = [];
+                $no = $request->input('start');
+                foreach ($list as $value) {
+                    $no++;
+                    $action = '';
+
+                    if(permission('customer-view')){
+                        $action .= ' <a class="dropdown-item view_data" data-id="' . $value->id . '"><i class="fas fa-eye text-primary"></i> View</a>';
+                    }
+                    if(permission('customer-edit')){
+                        $action .= ' <a class="dropdown-item edit_data" data-id="' . $value->id . '"><i class="fas fa-edit text-primary"></i> Edit</a>';
+                    }
+
+                    if(permission('customer-delete')){
+                        $action .= ' <a class="dropdown-item delete_data"  data-id="' . $value->id . '" data-name="' . $value->name . '"><i class="fas fa-trash text-danger"></i> Delete</a>';
+                    }
+
+                    $row = [];
+
+                    if(permission('customer-bulk-delete')){
+                        $row[] = table_checkbox($value->id);
+                    }
+                    $row[] = $value->id;
+                    $row[] = $value->name;
+                    $row[] = $value->email;
+                    $row[] = $value->address;;
+                    $row[] = action_button($action);
+                    $data[] = $row;
+                }
+                return $this->datatable_draw($request->input('draw'),$this->model->count_all(),
+                 $this->model->count_filtered(), $data);
+            }else{
+                $output = $this->access_blocked();
+            }
+
+            return response()->json($output);
+        }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     * @param Request $request
-     * @return Renderable
-     */
-    public function store(Request $request)
+    public function store_or_update_data(CustomersFormRequest $request)
     {
-        //
+        if($request->ajax()){
+            if(permission('customer-edit')){
+                $collection = collect($request->validated());
+                $collection = $this->track_data($request->update_id,$collection);
+                $result = $this->model->updateOrCreate(['id'=>$request->update_id],$collection->all());
+                $output = $this->store_message($result,$request->update_id);
+            }else{
+                $output = $this->access_blocked();
+            }
+            return response()->json($output);
+        }else{
+            return response()->json($this->access_blocked());
+        }
     }
 
-    /**
-     * Show the specified resource.
-     * @param int $id
-     * @return Renderable
-     */
-    public function show($id)
+    public function edit(Request $request)
     {
-        return view('vendor::show');
+        if($request->ajax()){
+            if(permission('customer-edit')){
+                $data = $this->model->findOrFail($request->id);
+                $output = $this->data_message($data);
+            }else{
+                $output = $this->access_blocked();
+            }
+            return response()->json($output);
+        }else{
+            return response()->json($this->access_blocked());
+        }
+    }
+    public function view(Request $request)
+    {
+        if($request->ajax()){
+            if(permission('customer-edit')){
+                $data = $this->model->findOrFail($request->id);
+                $output = $this->data_message($data);
+            }else{
+                $output = $this->access_blocked();
+            }
+            return response()->json($output);
+        }else{
+            return response()->json($this->access_blocked());
+        }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     * @param int $id
-     * @return Renderable
-     */
-    public function edit($id)
+    public function delete(Request $request)
     {
-        return view('vendor::edit');
+        if($request->ajax()){
+            if(permission('customer-delete')){
+                $result = $this->model->find($request->id)->delete();
+                $output = $this->delete_message($result);
+            }else{
+                $output = $this->access_blocked();
+            }
+            return response()->json($output);
+        }else{
+            return response()->json($this->access_blocked());
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     * @param Request $request
-     * @param int $id
-     * @return Renderable
-     */
-    public function update(Request $request, $id)
+    public function bulk_delete(Request $request)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     * @param int $id
-     * @return Renderable
-     */
-    public function destroy($id)
-    {
-        //
+        if($request->ajax()){
+            if(permission('customer-bulk-delete')){
+                $result = $this->model->destroy($request->ids);
+                $output = $this->bulk_delete_message($result);
+            }else{
+                $output = $this->access_blocked();
+            }
+            return response()->json($output);
+        }else{
+            return response()->json($this->access_blocked());
+        }
     }
 }
