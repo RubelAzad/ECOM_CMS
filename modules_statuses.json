@@ -48,5 +48,6 @@
     "B2B": true,
     "Coupon": true,
     "UserGroup": true,
-    "ConditionalDiscount": true
+    "ConditionalDiscount": true,
+    "Vendor": true
 }
