@@ -8,7 +8,7 @@ use Modules\Review\Entities\Review;
 class Vendors extends BaseModel
 {
     protected $table ='customers';
-    protected $fillable = ['name','address','created_at','updated_at'];
+    protected $fillable = ['name','email','address','phone_number','gender','date_of_birth','password','image','created_at','updated_at'];
 
     // public function reviews()
     // {
