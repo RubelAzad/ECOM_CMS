@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use Modules\Base\Http\Controllers\BaseController;
 use Modules\Vendor\Http\Requests\VendorFormRequest;
 use Modules\Vendor\Entities\Vendors;
+use Modules\Vendor\Entities\VendorAccount;
 use App\Traits\UploadAble;
 use Illuminate\Support\Facades\Hash;
 
@@ -79,24 +80,66 @@ class VendorController extends BaseController
         }
     }
 
+    // public function store_or_update_data(VendorFormRequest $request)
+    // {
+    //     if($request->ajax()){
+    //         if(permission('vendor-edit')){
+    //             $collection = collect($request->validated())->except(['password']);
+    //             $password=Hash::make($request->password);;
+    //             $collection = $collection->merge(compact('password'));
+    //             $collection = $this->track_data($request->update_id,$collection);
+    //             $result = $this->model->updateOrCreate(['id'=>$request->update_id],$collection->all());
+    //             $output = $this->store_message($result,$request->update_id);
+    //         }else{
+    //             $output = $this->access_blocked();
+    //         }
+    //         return response()->json($output);
+    //     }else{
+    //         return response()->json($this->access_blocked());
+    //     }
+    // }
     public function store_or_update_data(VendorFormRequest $request)
-    {
-        if($request->ajax()){
-            if(permission('vendor-edit')){
-                $collection = collect($request->validated())->except(['password']);
-                $password=Hash::make($request->password);;
-                $collection = $collection->merge(compact('password'));
-                $collection = $this->track_data($request->update_id,$collection);
-                $result = $this->model->updateOrCreate(['id'=>$request->update_id],$collection->all());
-                $output = $this->store_message($result,$request->update_id);
+{
+    if ($request->ajax()) {
+        if (permission('vendor-edit')) {
+            $customerData = $request->validated();
+
+            // Create or update customer data
+            $customerCollection = collect($customerData)->except(['password','vendor_amount','amount_percentage','vendor_use_amount']);
+            $password = Hash::make($request->password);
+            $customerCollection = $customerCollection->merge(compact('password'));
+            $customerCollection = $this->track_data($request->update_id, $customerCollection);
+            $customer = $this->model->updateOrCreate(['id' => $request->update_id], $customerCollection->all());
+
+                if(isset($request->update_id) && $request->update_id !==''){
+                    VendorAccount::create([
+                    'vendor_id' => $request->update_id,
+                    'vendor_amount' => $request->vendor_amount,
+                    'amount_percentage' => $request->amount_percentage,
+                    'vendor_use_amount' => $request->vendor_use_amount
+                ]);
             }else{
-                $output = $this->access_blocked();
+                  VendorAccount::create([
+                    'vendor_id' => $customer->id,
+                    'vendor_amount' => $request->vendor_amount,
+                    'amount_percentage' => $request->amount_percentage,
+                    'vendor_use_amount' => $request->vendor_use_amount
+                    ]);
             }
-            return response()->json($output);
-        }else{
-            return response()->json($this->access_blocked());
+          
+      
+
+
+            $output = $this->store_message($customer, $request->update_id);
+        } else {
+            $output = $this->access_blocked();
         }
+        return response()->json($output);
+    } else {
+        return response()->json($this->access_blocked());
     }
+}
+
 
     public function edit(Request $request)
     {

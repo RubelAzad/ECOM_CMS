@@ -20,19 +20,22 @@
                 <div class="row">
                 <x-form.textbox labelName="Vendor Name" name="name" required="required" col="col-md-6" placeholder="Enter customer name"/>
                 <x-form.textbox labelName="Vendor Email" name="email" required="required" col="col-md-6" placeholder="Enter Email"/>
-                <x-form.textbox labelName="Vendor Address" name="address" required="required" col="col-md-12" placeholder="Enter address"/>
+                <x-form.textbox labelName="Vendor Address" name="address" required="required" col="col-md-6" placeholder="Enter address"/>
                 <x-form.textbox labelName="New Password" name="password" type="password" required="required" col="col-md-6" placeholder="Enter New Password"/>
                 <x-form.textbox labelName="Phone" name="phone_number" required="required" col="col-md-6" placeholder="Enter Phone"/>
                 <x-form.textbox labelName="Date Of Birth" type="date" name="date_of_birth"  col="col-md-6" placeholder="Enter Date Of Birth"/>
-                 <div class="form-group col-md-6">
+                <div class="form-group col-md-6">
                     <label for="gender">Select Gender</label>
-                <select name="gender" id="gender" class="form-control selectpicker"  data-live-search="true" >
+                            <select name="gender" id="gender" class="form-control selectpicker"  data-live-search="true" >
                                 <option value=""> Select Please</option>
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
                             </select>
                   
                 </div>
+                  <x-form.textbox labelName="Vendor Amount" name="vendor_amount" col="col-md-6" placeholder="Vendor Amount"/>
+                  <x-form.textbox labelName="Amount Percentage" name="amount_percentage"  col="col-md-6" placeholder="Amount Percentage"/>
+                  <x-form.textbox labelName="Vendor Use Amount" name="vendor_use_amount"  col="col-md-6" placeholder="Vendor Use Amount"/>
               
                
          

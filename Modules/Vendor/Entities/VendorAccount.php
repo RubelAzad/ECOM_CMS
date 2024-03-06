@@ -5,10 +5,10 @@ namespace Modules\Vendor\Entities;
 use Modules\Base\Entities\BaseModel;
 use Modules\Review\Entities\Review;
 
-class Vendors extends BaseModel
+class VendorAccount extends BaseModel
 {
-    protected $table ='customers';
-    protected $fillable = ['name','email','address','phone_number','gender','date_of_birth','vendor_id','vendor_amount','amount_percentage','vendor_use_amount','password','image','created_at','updated_at'];
+    protected $table ='vendor_accounts';
+    protected $fillable = ['vendor_id ','vendor_account_type','vendor_amount','amount_percentage','vendor_use_amount','remark','status','created_at','updated_at'];
 
     // public function reviews()
     // {
@@ -25,9 +25,9 @@ class Vendors extends BaseModel
     private function get_datatable_query()
     {
         if(permission('ctype-bulk-delete')){
-            $this->column_order = [null,'id','name','address',null];
+            $this->column_order = [null,'id','vendor_id','vendor_account_type',null];
         }else{
-            $this->column_order = ['id','name','address',null];
+            $this->column_order = ['id','vendor_id','vendor_account_type',null];
         }
 
         $query = self::toBase();
