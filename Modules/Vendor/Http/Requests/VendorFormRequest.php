@@ -26,6 +26,8 @@ class VendorFormRequest extends FormRequest
         $rules['password'] = ['required'];
         $rules['date_of_birth'] = ['nullable'];
         $rules['gender'] = ['nullable'];
+   
+      
        
 
       
