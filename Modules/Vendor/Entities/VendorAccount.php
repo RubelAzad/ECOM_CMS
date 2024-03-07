@@ -8,7 +8,7 @@ use Modules\Review\Entities\Review;
 class VendorAccount extends BaseModel
 {
     protected $table ='vendor_accounts';
-    protected $fillable = ['vendor_id ','vendor_account_type','vendor_amount','amount_percentage','vendor_use_amount','remark','status','created_at','updated_at'];
+    protected $fillable = ['id','vendor_id ','vendor_account_type','vendor_amount','amount_percentage','vendor_use_amount','remark','status','created_at','updated_at'];
 
     // public function reviews()
     // {
@@ -22,6 +22,10 @@ class VendorAccount extends BaseModel
         $this->name = $name;
     }
 
+      public function vendor()
+    {
+        return $this->belongsTo(Vendors::class, 'vendor_id', 'id');
+    }
     private function get_datatable_query()
     {
         if(permission('ctype-bulk-delete')){
