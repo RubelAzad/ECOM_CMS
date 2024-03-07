@@ -80,24 +80,7 @@ class VendorController extends BaseController
         }
     }
 
-    // public function store_or_update_data(VendorFormRequest $request)
-    // {
-    //     if($request->ajax()){
-    //         if(permission('vendor-edit')){
-    //             $collection = collect($request->validated())->except(['password']);
-    //             $password=Hash::make($request->password);;
-    //             $collection = $collection->merge(compact('password'));
-    //             $collection = $this->track_data($request->update_id,$collection);
-    //             $result = $this->model->updateOrCreate(['id'=>$request->update_id],$collection->all());
-    //             $output = $this->store_message($result,$request->update_id);
-    //         }else{
-    //             $output = $this->access_blocked();
-    //         }
-    //         return response()->json($output);
-    //     }else{
-    //         return response()->json($this->access_blocked());
-    //     }
-    // }
+
     public function store_or_update_data(VendorFormRequest $request)
 {
     if ($request->ajax()) {
@@ -111,25 +94,17 @@ class VendorController extends BaseController
             $customerCollection = $this->track_data($request->update_id, $customerCollection);
             $customer = $this->model->updateOrCreate(['id' => $request->update_id], $customerCollection->all());
 
-                if(isset($request->update_id) && $request->update_id !==''){
-                    VendorAccount::create([
-                    'vendor_id' => $request->update_id,
-                    'vendor_amount' => $request->vendor_amount,
-                    'amount_percentage' => $request->amount_percentage,
-                    'vendor_use_amount' => $request->vendor_use_amount
-                ]);
-            }else{
-                  VendorAccount::create([
-                    'vendor_id' => $customer->id,
-                    'vendor_amount' => $request->vendor_amount,
-                    'amount_percentage' => $request->amount_percentage,
-                    'vendor_use_amount' => $request->vendor_use_amount
-                    ]);
-            }
+           VendorAccount::create([
+                'vendor_id' => $customer->id ?? null, // Use customer ID if available, otherwise set to null
+                'vendor_amount' => $request->vendor_amount,
+                'amount_percentage' => $request->amount_percentage,
+                'vendor_use_amount' => $request->vendor_use_amount
+            ]);
+
           
       
 
-
+            dd($customer->id);
             $output = $this->store_message($customer, $request->update_id);
         } else {
             $output = $this->access_blocked();
@@ -139,6 +114,40 @@ class VendorController extends BaseController
         return response()->json($this->access_blocked());
     }
 }
+// public function store_or_update_data(VendorFormRequest $request)
+// {
+//     if ($request->ajax()) {
+//         if (permission('vendor-edit')) {
+//             $collection = collect($request->validated())->except(['password','vendor_amount','amount_percentage','vendor_use_amount']);
+//             $password = Hash::make($request->password);
+//             $collection = $collection->merge(compact('password'));
+//             $collection = $this->track_data($request->update_id, $collection);
+
+//             $result = $this->model->updateOrCreate(['id' => $request->update_id], $collection->all());
+//             $output = $this->store_message($result, $request->update_id);
+
+//             // Insert data into vendor_accounts table regardless of customer update success
+//             if ($result) { // Check if customer update/creation was successful
+//                 $customerId = $result->id;
+
+//                 $vendorAccountData = [
+//                     'vendor_id' => $customerId,
+//                     'vendor_amount' => $request->vendor_amount,
+//                     'amount_percentage' => $request->amount_percentage,
+//                     'vendor_use_amount' => $request->vendor_use_amount,
+//                 ];
+
+//                 VendorAccount::create($vendorAccountData);
+//             } 
+//         } else {
+//             $output = $this->access_blocked();
+//         }
+//         return response()->json($output);
+//     } else {
+//         return response()->json($this->access_blocked());
+//     }
+// }
+
 
 
     public function edit(Request $request)
