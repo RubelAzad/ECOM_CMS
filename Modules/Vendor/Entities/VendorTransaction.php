@@ -3,12 +3,19 @@
 namespace Modules\Vendor\Entities;
 
 use Modules\Base\Entities\BaseModel;
-use Modules\Review\Entities\Review;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
+class VendorTransaction extends BaseModel
 
-class Vendors extends BaseModel
 {
-    protected $table ='customers';
-    protected $fillable = ['name','email','address','phone_number','gender','date_of_birth','password','image','customer_type','status','created_at','updated_at'];
+    protected $table ='vendor_transactions';
+    protected $fillable = ['voucher_type','voucher_no','payment_type','cash_person_name','online_mobile','online_transaction_number','bank_name','bank_account','voucher_date','vendor_id','invoice_id','wallet_amount','payment_amount','remark','status','created_at','updated_at'];
+
+
+    public function vendor()
+    {
+        return $this->belongsTo(Vendors::class, 'vendor_id', 'id');
+    }
 
     // public function reviews()
     // {
@@ -30,7 +37,7 @@ class Vendors extends BaseModel
             $this->column_order = ['id','name','address',null];
         }
 
-        $query = self::toBase();
+        $query = self::with('vendor');
 
         /*****************
          * *Search Data **
@@ -39,7 +46,10 @@ class Vendors extends BaseModel
             $query->where('name', 'like', '%' . $this->name . '%');
         }
 
-        $query->where('customer_type', '1');
+        $query->whereHas('vendor', function (Builder $query) {
+            $query->where('customer_type', 1);
+        });
+
 
         if (isset($this->orderValue) && isset($this->dirValue)) {
             $query->orderBy($this->column_order[$this->orderValue], $this->dirValue);

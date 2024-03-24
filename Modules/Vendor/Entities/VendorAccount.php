@@ -4,11 +4,12 @@ namespace Modules\Vendor\Entities;
 
 use Modules\Base\Entities\BaseModel;
 use Modules\Review\Entities\Review;
+use Illuminate\Database\Eloquent\Builder;
 
 class VendorAccount extends BaseModel
 {
     protected $table ='vendor_accounts';
-    protected $fillable = ['id','vendor_id ','vendor_account_type','vendor_amount','amount_percentage','vendor_use_amount','remark','status','created_at','updated_at'];
+    protected $fillable = ['id','vendor_id','vendor_account_type','vendor_amount','amount_percentage','vendor_use_amount','remark','status','created_at','updated_at'];
 
     // public function reviews()
     // {
@@ -34,7 +35,7 @@ class VendorAccount extends BaseModel
             $this->column_order = ['id','vendor_id','vendor_account_type',null];
         }
 
-        $query = self::toBase();
+        $query = self::with('vendor');
 
         /*****************
          * *Search Data **
@@ -42,6 +43,12 @@ class VendorAccount extends BaseModel
         if (!empty($this->name)) {
             $query->where('name', 'like', '%' . $this->name . '%');
         }
+
+         // Add condition to filter by customer_type = 1
+         $query->whereHas('vendor', function (Builder $query) {
+            $query->where('customer_type', 1);
+        });
+
 
         if (isset($this->orderValue) && isset($this->dirValue)) {
             $query->orderBy($this->column_order[$this->orderValue], $this->dirValue);

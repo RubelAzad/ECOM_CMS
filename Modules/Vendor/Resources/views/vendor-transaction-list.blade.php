@@ -29,8 +29,8 @@
                 <div class="dt-entry__heading">
                     <h2 class="dt-page__title mb-0 text-primary"><i class="{{ $page_icon }}"></i> {{ $sub_title }}</h2>
                 </div>
-                @if (permission('vendor-add'))
-                    <button class="btn btn-primary btn-sm" onclick="showFormModal('Add New Vendor','Save');clearOldImage()">
+                @if (permission('vtranscation-add'))
+                    <button class="btn btn-primary btn-sm" onclick="showFormModal('Add New vtranscation','Save')">
                         <i class="fas fa-plus-square"></i> Add New
                     </button>
                 @endif
@@ -48,8 +48,8 @@
                     <form id="form-filter">
                         <div class="row">
                             <div class="form-group col-md-4">
-                                <label for="name">Customer Name</label>
-                                <input type="text" class="form-control" name="name" id="name" placeholder="Enter Customer Name">
+                                <label for="name">vtranscation Name</label>
+                                <input type="text" class="form-control" name="name" id="name" placeholder="Enter vtranscation Name">
                             </div>
                             <div class="form-group col-md-8 pt-24">
                                <button type="button" class="btn btn-danger btn-sm float-right" id="btn-reset"
@@ -66,7 +66,7 @@
                     <table id="dataTable" class="table table-striped table-bordered table-hover">
                         <thead class="bg-primary">
                             <tr>
-                                @if (permission('customer-bulk-delete'))
+                                @if (permission('vtranscation-bulk-delete'))
                                 <th>
                                     <div class="custom-control custom-checkbox">
                                         <input type="checkbox" class="custom-control-input" id="select_all" onchange="select_all()">
@@ -74,10 +74,16 @@
                                     </div>
                                 </th>
                                 @endif
-				                <th>Type Id</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Address</th>
+                                <th>Id</th>
+                                <th>Voucher Name</th>
+				                <th>Voucher Type</th>
+                                <th>Payment Type</th>
+                                <th>Date</th>
+                                <th>Mobile</th>
+                                <th>Transaction Id</th>
+                                <th>Bank Name</th>
+                                <th>Bank Account</th>
+                                <th>Payment Amount</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -97,8 +103,8 @@
     <!-- /grid -->
 
 </div>
-@include('vendor::modal')
-{{-- @include('vendor::view_modal') --}}
+@include('vendor::vendor-transaction-modal')
+{{-- @include('vtranscation::view_modal') --}}
 @endsection
 
 @push('script')
@@ -106,6 +112,40 @@
 <script>
 var table;
 $(document).ready(function(){
+
+    $('#voucher_type').change(function() {
+        var selectedType = $(this).val();
+        var value = '';
+
+        if (selectedType === 'Debit') {
+            value = 'DV';
+        } else if (selectedType === 'Credit') {
+            value = 'CV';
+        }
+
+        $('#voucher_no').val(value);
+    });
+
+    $('#payment_type').change(function() {
+        var selectedType = $(this).val();
+
+        // Hide all input fields and their labels
+        $('#cash_provider_name_container, #online_mobile_container, #online_transaction_number_container, #bank_name_container, #bank_account_container').hide();
+
+        // Show input fields and their labels based on selected payment type
+        if (selectedType === 'cash') {
+            $('#cash_provider_name_container').show();
+        } else if (selectedType === 'online') {
+            $('#online_mobile_container, #online_transaction_number_container').show();
+        } else if (selectedType === 'bank') {
+            $('#bank_name_container, #bank_account_container').show();
+        }
+    });
+
+
+
+
+
 
     table = $('#dataTable').DataTable({
         "processing": true, //Feature control the processing indicator
@@ -126,7 +166,7 @@ $(document).ready(function(){
             zeroRecords: '<strong class="text-danger">No Data Found</strong>'
         },
         "ajax": {
-            "url": "{{route('vendor.datatable.data')}}",
+            "url": "{{route('vtranscation.datatable.data')}}",
             "type": "POST",
             "data": function (data) {
                 data.name = $("#form-filter #name").val();
@@ -134,7 +174,7 @@ $(document).ready(function(){
             }
         },
         "columnDefs": [{
-                @if (permission('vendor-bulk-delete'))
+                @if (permission('vtranscation-bulk-delete'))
                 "targets": [0,4],
                 @else
                 "targets": [3],
@@ -143,7 +183,7 @@ $(document).ready(function(){
                 "className": "text-center"
             },
             {
-                @if (permission('vendor-bulk-delete'))
+                @if (permission('vtranscation-bulk-delete'))
                 "targets": [1,3],
                 @else
                 "targets": [0,2],
@@ -156,7 +196,7 @@ $(document).ready(function(){
             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'<'float-right'p>>>",
 
         "buttons": [
-            @if (permission('vendor-report'))
+            @if (permission('vtranscation-report'))
             {
                 'extend':'colvis','className':'btn btn-secondary btn-sm text-white','text':'Column'
             },
@@ -181,7 +221,7 @@ $(document).ready(function(){
                 'text':'CSV',
                 'className':'btn btn-secondary btn-sm text-white',
                 "title": "Content Type List",
-                "filename": "customer",
+                "filename": "vtranscation",
                 "exportOptions": {
                     columns: function (index, data, node) {
                         return table.column(index).visible();
@@ -193,7 +233,7 @@ $(document).ready(function(){
                 'text':'Excel',
                 'className':'btn btn-secondary btn-sm text-white',
                 "title": "Content Type List",
-                "filename": "customer",
+                "filename": "vtranscation",
                 "exportOptions": {
                     columns: function (index, data, node) {
                         return table.column(index).visible();
@@ -205,7 +245,7 @@ $(document).ready(function(){
                 'text':'PDF',
                 'className':'btn btn-secondary btn-sm text-white',
                 "title": "Content Type List",
-                "filename": "customer",
+                "filename": "vtranscation",
                 "orientation": "landscape", //portrait
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
@@ -213,7 +253,7 @@ $(document).ready(function(){
                 },
             },
             @endif
-            @if (permission('vendor-bulk-delete'))
+            @if (permission('vtranscation-bulk-delete'))
             {
                 'className':'btn btn-danger btn-sm delete_btn d-none text-white',
                 'text':'Delete',
@@ -237,7 +277,7 @@ $(document).ready(function(){
     $(document).on('click', '#save-btn', function () {
         let form = document.getElementById('store_or_update_form');
         let formData = new FormData(form);
-        let url = "{{route('vendor.store.or.update')}}";
+        let url = "{{route('vtranscation.store.or.update')}}";
         let id = $('#update_id').val();
         let method;
         if (id) {
@@ -248,36 +288,7 @@ $(document).ready(function(){
         store_or_update_data(table, method, url, formData);
     });
 
-    $(document).on('click', '.view_data', function () {
-        let id = $(this).data('id');
 
-        if (id) {
-            $.ajax({
-                url: "{{route('vendor.view')}}",
-                type: "POST",
-                data: { id: id,_token: _token},
-                dataType: "JSON",
-                success: function (data) {
-                    // console.log(data);
-                    $('.name_is').html(data.name);
-                    $('.email_is').html(data.email);
-                    $('.address_is').html(data.address);
-                    $('.date_of_birth_is').html(data.date_of_birth);
-                    $('.gender_is').html(data.gender);
-                    $('.phone_number_is').html(data.phone);
-
-                    $('#view_data_modal').modal({
-                        keyboard: false,
-                        backdrop: 'static',
-                    });
-
-                },
-                error: function (xhr, ajaxOption, thrownError) {
-                    console.log(thrownError + '\r\n' + xhr.statusText + '\r\n' + xhr.responseText);
-                }
-            });
-        }
-    });
 
     $(document).on('click', '.edit_data', function () {
         let id = $(this).data('id');
@@ -286,33 +297,31 @@ $(document).ready(function(){
         $('#store_or_update_form').find('.error').remove();
         if (id) {
             $.ajax({
-                url: "{{route('vendor.edit')}}",
+                url: "{{route('vtranscation.edit')}}",
                 type: "POST",
                 data: { id: id,_token: _token},
                 dataType: "JSON",
                 success: function (data) {
-                $('#store_or_update_form #old_image').val(data.image);
-                    if(data.image){
-                        var image = "{{ asset('storage/'.EMPLOYEE_IMAGE_PATH)}}/"+data.image;
-                        $('#store_or_update_form #image img.spartan_image_placeholder').css('display','none');
-                        $('#store_or_update_form #image .spartan_remove_row').css('display','block');
-                        $('#store_or_update_form #image .img_').css('display','block');
-                        $('#store_or_update_form #image .img_').attr('src',image);
-                    }else{
-                        $('#store_or_update_form #image img.spartan_image_placeholder').css('display','block');
-                        $('#store_or_update_form #image .spartan_remove_row').css('display','none');
-                        $('#store_or_update_form #image .img_').css('display','none');
-                        $('#store_or_update_form #image .img_').attr('src','');
-                    }
-                    $('#store_or_update_form #update_id').val(data.id);
-                    $('#store_or_update_form #name').val(data.name);
-                    $('#store_or_update_form #phone_number').val(data.phone_number);
-                    $('#store_or_update_form #date_of_birth').val(data.date_of_birth);
-                    $('#store_or_update_form #gender').val(data.gender);
-                    $('#store_or_update_form #password').val(data.password);
-                    $('#store_or_update_form #address').val(data.address);
-                    $('#store_or_update_form #email').val(data.email);
+                    $('#store_or_update_form #update_id').val(data.vendor.id);
+                    $('#store_or_update_form #voucher_type').val(data.vendor.voucher_type);
+                    $('#store_or_update_form #voucher_no').val(data.vendor.voucher_no);
+                    $('#store_or_update_form #payment_type').val(data.vendor.payment_type);
+                    $('#store_or_update_form #cash_person_name').val(data.vendor.cash_person_name);
+                    $('#store_or_update_form #online_mobile').val(data.vendor.online_mobile);
+                    $('#store_or_update_form #online_transaction_number').val(data.vendor.online_transaction_number);
+                    $('#store_or_update_form #bank_name').val(data.vendor.bank_name);
+                    $('#store_or_update_form #bank_account').val(data.vendor.bank_account);
+                    $('#store_or_update_form #voucher_date').val(data.vendor.voucher_date);
+                    $('#store_or_update_form #vendor_id').val(data.vendor.vendor_id);
+                    $('#store_or_update_form #invoice_id').val(data.vendor.invoice_id);
+                    $('#store_or_update_form #wallet_amount').val(data.vendor.wallet_amount);
+                    $('#store_or_update_form #payment_amount').val(data.vendor.payment_amount);
+                    $('#store_or_update_form #remark').val(data.vendor.remark);
                      $('#store_or_update_form .selectpicker').selectpicker('refresh');
+
+
+                     // Show corresponding input fields based on payment type
+                    showPaymentFields(data.vendor.payment_type);
 
                     $('#store_or_update_modal').modal({
                         keyboard: false,
@@ -334,7 +343,7 @@ $(document).ready(function(){
         let id    = $(this).data('id');
         let name  = $(this).data('name');
         let row   = table.row($(this).parent('tr'));
-        let url   = "{{ route('vendor.delete') }}";
+        let url   = "{{ route('vtranscation.delete') }}";
         delete_data(id, url, table, row, name);
     });
 
@@ -351,15 +360,7 @@ $(document).ready(function(){
             }
         });
 
-        function clearOldImage(){
 
-
-
-
-
-
-
-        }
 
     function multi_delete(){
         let ids = [];
@@ -376,12 +377,72 @@ $(document).ready(function(){
                 icon: 'warning',
             });
         }else{
-            let url = "{{route('customers.bulk.delete')}}";
+            let url = "{{route('vtranscation.bulk.delete')}}";
             bulk_delete(ids,url,table,rows);
         }
     }
+
+    $('#vendor_id').change(function() {
+            var vendorId = $(this).val();
+            if (vendorId) {
+                $.ajax({
+                    url: '{{ route("vtranscation.get.wallet.amount") }}',
+                    type: 'POST',
+                    data: { vendor_id: vendorId, _token: '{{ csrf_token() }}' },
+                    success: function(response) {
+                        $('#wallet_amount').val(response.wallet_amount);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            } else {
+                $('#wallet_amount').val('');
+            }
+        });
+
+
+
+        function setReadonly() {
+        // Get the textarea element by its ID
+        var textarea = document.getElementById('wallet_amount');
+
+        // Set the readOnly property to true
+        textarea.readOnly = true;
+        }
+
+        // Call the setReadonly function initially
+        setReadonly();
+
+        // Periodically check and reset the readonly attribute
+        setInterval(function() {
+            setReadonly();
+        }, 100);
+
+
+        function showPaymentFields(paymentType) {
+            // Hide all payment-related fields
+            $('#cash_provider_name_container').hide();
+            $('#online_mobile_container').hide();
+            $('#online_transaction_number_container').hide();
+            $('#bank_name_container').hide();
+            $('#bank_account_container').hide();
+
+            // Show fields corresponding to the selected payment type
+            if (paymentType === 'cash') {
+                $('#cash_provider_name_container').show();
+            } else if (paymentType === 'online') {
+                $('#online_mobile_container').show();
+                $('#online_transaction_number_container').show();
+            } else if (paymentType === 'bank') {
+                $('#bank_name_container').show();
+                $('#bank_account_container').show();
+            }
+        }
+
 
 
 });
 </script>
 @endpush
+

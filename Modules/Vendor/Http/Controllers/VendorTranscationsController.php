@@ -2,21 +2,20 @@
 
 namespace Modules\Vendor\Http\Controllers;
 
+
+use Modules\Base\Http\Controllers\BaseController;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Modules\Base\Http\Controllers\BaseController;
-use Modules\Vendor\Http\Requests\VendorFormRequest;
+use Illuminate\Support\Facades\Hash;
 use Modules\Vendor\Entities\Vendors;
 use Modules\Vendor\Entities\VendorAccount;
-use App\Traits\UploadAble;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
+use Modules\Vendor\Entities\VendorTransaction;
+use Modules\Vendor\Http\Requests\VendorTransactionFormRequest;
 
-class VendorController extends BaseController
+class VendorTranscationsController extends BaseController
 {
-    use UploadAble;
-    public function __construct(Vendors $model)
+    public function __construct(VendorTransaction $model)
     {
         $this->model = $model;
     }
@@ -25,7 +24,11 @@ class VendorController extends BaseController
     {
         if(permission('vendor-access')){
             $this->setPageData('Vendors','Vendors','fas fa-th-list');
-            return view('vendor::index');
+
+            $data = [
+                'vendors' => Vendors::where('customer_type','1')->get()
+            ];
+            return view('vendor::vendor-transaction-list',$data);
         }else{
             return $this->unauthorized_access_blocked();
         }
@@ -65,9 +68,15 @@ class VendorController extends BaseController
                         $row[] = table_checkbox($value->id);
                     }
                     $row[] = $value->id;
-                    $row[] = $value->name;
-                    $row[] = $value->email;
-                    $row[] = $value->address;;
+                    $row[] = $value->vendor->name;
+                    $row[] = $value->voucher_type;
+                    $row[] = $value->payment_type;
+                    $row[] = $value->voucher_date;
+                    $row[] = $value->online_mobile;
+                    $row[] = $value->online_transaction_number;
+                    $row[] = $value->bank_name;
+                    $row[] = $value->bank_account;
+                    $row[] = $value->payment_amount;
                     $row[] = action_button($action);
                     $data[] = $row;
                 }
@@ -82,33 +91,30 @@ class VendorController extends BaseController
     }
 
 
-    public function store_or_update_data(VendorFormRequest $request)
+    public function store_or_update_data(VendorTransactionFormRequest $request)
 {
     if ($request->ajax()) {
         if (permission('vendor-edit')) {
-            $customerData = $request->validated();
+            $collection = collect($request->validated());
+                $collection = $this->track_data($request->update_id,$collection);
+                $result = $this->model->updateOrCreate(['id'=>$request->update_id],$collection->all());
+                $voucher_type=$result->voucher_type;
+                $vendor=VendorAccount::where('vendor_id', $result->vendor_id)->first();
+                $vendorUserAmount=$vendor->vendor_use_amount;
+                $paymentAmount=$result->payment_amount;
+                if($voucher_type === "Debit"){
+                    $finalDebitAmount=$vendorUserAmount - $paymentAmount;
+                    VendorAccount::where('vendor_id', $result->vendor_id)->update(['vendor_use_amount' => $finalDebitAmount]);
 
-            // Create or update customer data
-            $customerCollection = collect($customerData)->except(['password','vendor_amount','amount_percentage','vendor_use_amount']);
-            $password = Hash::make($request->password);
-            $customer_type = '1';
-            $customerCollection = $customerCollection->merge(compact('password','customer_type'));
+                }
+                if($voucher_type === "Credit"){
+                    $finalCreditAmount=$vendorUserAmount + $paymentAmount;
+                    VendorAccount::where('vendor_id', $result->vendor_id)->update(['vendor_use_amount' => $finalCreditAmount]);
 
-            $customerCollection = $this->track_data($request->update_id, $customerCollection);
-            $customer = $this->model->updateOrCreate(['id' => $request->update_id], $customerCollection->all());
+                }
+                $output = $this->store_message($result,$request->update_id);
 
-            $vendor_id = $customer->id ?? null;
 
-            VendorAccount::updateOrCreate(
-                ['vendor_id' => $vendor_id],
-                [
-                    'vendor_amount' => $request->vendor_amount,
-                    'amount_percentage' => $request->amount_percentage,
-                    'vendor_use_amount' => $request->vendor_use_amount
-                ]
-            );
-
-            $output = $this->store_message($customer, $request->update_id);
         } else {
             $output = $this->access_blocked();
         }
@@ -117,39 +123,6 @@ class VendorController extends BaseController
         return response()->json($this->access_blocked());
     }
 }
-// public function store_or_update_data(VendorFormRequest $request)
-// {
-//     if ($request->ajax()) {
-//         if (permission('vendor-edit')) {
-//             $collection = collect($request->validated())->except(['password','vendor_amount','amount_percentage','vendor_use_amount']);
-//             $password = Hash::make($request->password);
-//             $collection = $collection->merge(compact('password'));
-//             $collection = $this->track_data($request->update_id, $collection);
-
-//             $result = $this->model->updateOrCreate(['id' => $request->update_id], $collection->all());
-//             $output = $this->store_message($result, $request->update_id);
-
-//             // Insert data into vendor_accounts table regardless of customer update success
-//             if ($result) { // Check if customer update/creation was successful
-//                 $customerId = $result->id;
-
-//                 $vendorAccountData = [
-//                     'vendor_id' => $customerId,
-//                     'vendor_amount' => $request->vendor_amount,
-//                     'amount_percentage' => $request->amount_percentage,
-//                     'vendor_use_amount' => $request->vendor_use_amount,
-//                 ];
-
-//                 VendorAccount::create($vendorAccountData);
-//             }
-//         } else {
-//             $output = $this->access_blocked();
-//         }
-//         return response()->json($output);
-//     } else {
-//         return response()->json($this->access_blocked());
-//     }
-// }
 
 
 
@@ -158,7 +131,7 @@ class VendorController extends BaseController
         if($request->ajax()){
             if(permission('vendor-edit')){
                 $data = $this->model->findOrFail($request->id);
-                $vendorAccount = VendorAccount::where('vendor_id', $data->id)->first(); // Fetch associated vendor account
+                $vendorAccount = VendorTransaction::where('vendor_id', $data->id)->first(); // Fetch associated vendor account
                 $output = [
                     'vendor' => $data,
                     'vendor_account' => $vendorAccount, // Include vendor account data in the output
@@ -215,5 +188,20 @@ class VendorController extends BaseController
         }else{
             return response()->json($this->access_blocked());
         }
+    }
+
+    public function getWalletAmount(Request $request)
+    {
+        $vendorId = $request->input('vendor_id');
+        $vendor_use_amount = 0; // Default value
+
+        // Retrieve the vendor from the database
+        $VendorAccount = VendorAccount::where('vendor_id',$vendorId)->first();
+        // Check if the vendor exists and has a wallet amount
+        if ($VendorAccount && $VendorAccount->vendor_use_amount) {
+            $vendor_use_amount = $VendorAccount->vendor_use_amount;
+        }
+
+        return response()->json(['wallet_amount' => $vendor_use_amount]);
     }
 }

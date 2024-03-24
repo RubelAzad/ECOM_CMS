@@ -31,24 +31,15 @@
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
                             </select>
-                  
+
                 </div>
                   <x-form.textbox labelName="Vendor Amount" name="vendor_amount" col="col-md-6" placeholder="Vendor Amount"/>
                   <x-form.textbox labelName="Amount Percentage" name="amount_percentage"  col="col-md-6" placeholder="Amount Percentage"/>
                   <x-form.textbox labelName="Vendor Use Amount" name="vendor_use_amount"  col="col-md-6" placeholder="Vendor Use Amount"/>
-              
-               
-         
-           
-
-
-
-
-
 
                 </div>
 
-              
+
             </div>
             <!-- /modal body -->
 
